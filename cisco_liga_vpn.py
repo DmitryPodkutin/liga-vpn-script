@@ -16,9 +16,11 @@ argument = argv
 
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), 'config.ini'), encoding='utf-8-sig')
-login = config.get('vpn.phoenixit.ru', 'login').rstrip()
-password = config.get('vpn.phoenixit.ru', 'password').rstrip()
-secret = config.get('vpn.phoenixit.ru', 'secret').rstrip()
+login = config.get('liga_vpn', 'login').rstrip()
+password = config.get('liga_vpn', 'password').rstrip()
+secret = config.get('liga_vpn', 'secret').rstrip()
+vpn_server = config.get('liga_vpn', 'vpn_server').rstrip()
+cisco_app_path = config.get('liga_vpn', 'cisco_app_path').rstrip()
 
 def get_hotp_token(secret, intervals_no):
     key = base64.b32decode(secret, True)
@@ -34,8 +36,10 @@ def get_totp_token(secret):
 second_password = get_totp_token(secret)
 
 if "-c" in argument:
-    subprocess.run('printf \'{0}\n{1}\n{2}\ny\' | /opt/cisco/anyconnect/bin/vpn -s connect vpn.phoenixit.ru'.format(login,password,second_password), shell=True)
+    command = f"printf '{login}\n{password}\n{second_password}\ny' | {cisco_app_path} -s connect {vpn_server}"
+    subprocess.run(command, shell=True)
 elif "-d" in argument:
-    subprocess.run('/opt/cisco/anyconnect/bin/vpn disconnect', shell=True)
+    command = f'{cisco_app_path} disconnect'
+    subprocess.run(command, shell=True)
 else:
     subprocess.run('echo Добавьте к команде параметр: -c : запустить VPN , -d : остановить VPN ', shell=True)
